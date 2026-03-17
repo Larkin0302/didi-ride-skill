@@ -15,31 +15,47 @@
 ## 前置条件
 
 - [OpenClaw](https://github.com/nicepkg/openclaw) 已安装并运行
-- `feishu-openclaw-plugin` 已安装（飞书频道插件）
 - 滴滴 MCP API Key（申请地址：https://mcp.didichuxing.com ）
+- 飞书应用凭据（appId + appSecret）
+
+> 飞书官方插件会由安装脚本自动安装，不需要手动装。
 
 ## 一键安装
 
+**方式 1: 远程安装（推荐分享给他人）**
+
 ```bash
-git clone https://github.com/Larkin0302/didi-ride-skill.git
-cd didi-ride-skill
-bash install.sh
+zsh <(curl -fsSL https://raw.githubusercontent.com/Larkin0302/didi-ride-skill/main/install.sh)
 ```
 
-安装脚本会自动：
-1. 复制打车工具代码到飞书插件目录
-2. 复制 AI 技能定义到 OpenClaw skills 目录
-3. 在插件的 `index.js` 中注册工具
-4. 在插件的 `monitor.js` 中添加卡片按钮路由
-5. 引导你配置滴滴 API Key
+**方式 2: 本地安装**
 
-安装完成后执行 `openclaw gateway restart` 重启即可。
+```bash
+git clone https://github.com/Larkin0302/didi-ride-skill ~/.openclaw/skills/didi-ride
+zsh ~/.openclaw/skills/didi-ride/install.sh
+```
+
+安装脚本会自动完成全部 7 步：
+
+1. 部署技能文件到 OpenClaw skills 目录
+2. 自动安装/更新飞书官方插件（`feishu-openclaw-plugin`）
+3. 部署打车工具代码 + Patch 插件（index.js / monitor.js）
+4. 引导配置飞书凭据（appId + appSecret）
+5. 引导配置滴滴 MCP API Key
+6. 推荐模型 + 设置超时
+7. 自动重启 Gateway
 
 ## 手动安装
 
 如果自动安装不适用，可以手动操作：
 
-### 1. 复制文件
+### 1. 安装飞书插件
+
+```bash
+openclaw plugins install @larksuiteoapi/feishu-openclaw-plugin
+```
+
+### 2. 复制文件
 
 ```bash
 # 源代码
@@ -51,7 +67,7 @@ mkdir -p ~/.openclaw/skills/didi-ride/
 cp skill/SKILL.md ~/.openclaw/skills/didi-ride/
 ```
 
-### 2. 修改 index.js
+### 3. 修改 index.js
 
 在 `~/.openclaw/extensions/feishu-openclaw-plugin/index.js` 中：
 
@@ -65,7 +81,7 @@ import { registerDiDiRideTool } from "./src/tools/didi-ride/register.js";
 registerDiDiRideTool(api);
 ```
 
-### 3. 修改 monitor.js
+### 4. 修改 monitor.js
 
 在 `~/.openclaw/extensions/feishu-openclaw-plugin/src/channel/monitor.js` 的 `card.action.trigger` 处理中，在 `handleCardAction` 调用之前添加：
 
@@ -77,7 +93,7 @@ if (typeof action === "string" && action.startsWith("didi_")) {
 }
 ```
 
-### 4. 配置 API Key
+### 5. 配置 API Key
 
 在 `~/.openclaw/openclaw.json` 的 `env` 字段中添加：
 
@@ -89,7 +105,7 @@ if (typeof action === "string" && action.startsWith("didi_")) {
 }
 ```
 
-### 5. 重启
+### 6. 重启
 
 ```bash
 openclaw gateway restart
@@ -130,8 +146,7 @@ const DIDI_DEBUG_MODE = false;
 ## 卸载
 
 ```bash
-bash uninstall.sh
-openclaw gateway restart
+zsh ~/.openclaw/skills/didi-ride/uninstall.sh
 ```
 
 ## 技术架构
